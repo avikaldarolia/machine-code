@@ -47,118 +47,73 @@ const FileExplorer = () => {
 	const [fileId, setFileId] = useState<number | null>(null);
 	const [type, setType] = useState<FolderType | null>(null);
 
-	const toggleHelper = (fileIterator: File[], fileId: number, operation: CollapsedStatus): boolean => {
-		const updatedItr = [...fileIterator];
-		let found = false;
-		updatedItr.forEach((ff) => {
-			if (found === true) {
-				return;
+	const updateTree = (nodes: File[], callback: (node: File, idx: number, parent: File[]) => boolean): File[] => {
+		return nodes.map((node, idx, arr) => {
+			if (callback(node, idx, arr)) {
+				return node;
 			}
-			if (ff.id === fileId) {
-				found = true;
-				if (operation === CollapsedStatus.OPEN) {
-					ff.collapsed = false;
-				} else if (operation === CollapsedStatus.CLOSE) {
-					ff.collapsed = true;
-				}
+
+			if (node.children) {
+				node.children = updateTree(node.children, callback);
+			}
+			return node;
+		});
+	};
+
+	const handleToggle = (id: number, status: CollapsedStatus) => {
+		const updated = updateTree([...files], (node) => {
+			if (node.id === id && node.isFolder) {
+				node.collapsed = status === CollapsedStatus.CLOSE;
 				return true;
 			}
-
-			if (ff.children && ff.children.length > 0) {
-				if (toggleHelper(ff.children, fileId, operation)) {
-					found = true;
-					return true;
-				}
-			}
-
 			return false;
 		});
 
-		return found;
+		setFiles(updated);
+		setInput("");
 	};
 
-	const handleToggle = (fileId: number, operation: CollapsedStatus) => {
-		const updatedFiles = [...files];
-		toggleHelper(updatedFiles, fileId, operation);
-		setFiles(() => updatedFiles);
-	};
+	const handleAddition = () => {
+		if (!fileId || !type || input.trim() === "") return;
 
-	const handleAddition = (fileIterator: File[]) => {
-		if (fileIterator.length === 0) {
-			return false;
-		}
-
-		const updatedItr = [...fileIterator];
-		let found = false;
-		updatedItr.forEach((ff) => {
-			if (found === true) {
-				return;
-			}
-			if (ff.id === fileId) {
-				found = true;
-				const child: File = {
+		const updated = updateTree([...files], (node) => {
+			if (node.id === fileId && node.isFolder) {
+				const newNode: File = {
 					id: Date.now(),
-					name: input,
+					name: input.trim(),
 					isFolder: type === FolderType.FOLDER,
+					collapsed: type === FolderType.FOLDER ? true : undefined,
+					children: type === FolderType.FOLDER ? [] : undefined,
 				};
-
-				if (type === FolderType.FOLDER) {
-					child.children = [];
-					child.collapsed = true;
-				}
-
-				if (!ff.children) {
-					ff.children = [];
-				}
-				ff.children = [...ff.children, child];
+				node.children = node.children ? [...node.children, newNode] : [newNode];
 				return true;
-			}
-
-			if (ff.children && ff.children.length > 0) {
-				const bottomCheck = handleAddition(ff.children);
-				if (bottomCheck) {
-					found = true;
-				}
-				return bottomCheck;
 			}
 
 			return false;
 		});
 
-		setFiles(() => updatedItr);
+		setFiles(updated);
 		setInput("");
 		setFileId(null);
 		setType(null);
+		setIsOpen(false);
 	};
 
-	const deleteHelper = (fileIterator: File[], fileId: number): boolean => {
-		let found = false;
-		if (fileIterator.length === 0) {
-			return false;
-		}
+	const handleDelete = (id: number) => {
+		const removeNode = (nodes: File[]): File[] =>
+			nodes
+				.map((node) => {
+					if (node.id === id) {
+						return null;
+					}
+					if (node.children) {
+						node.children = removeNode(node.children);
+					}
+					return node;
+				})
+				.filter(Boolean) as File[];
 
-		fileIterator.forEach((file, idx) => {
-			if (file.id === fileId) {
-				found = true;
-				fileIterator.splice(idx, 1);
-				return null;
-			}
-
-			if (file.children && deleteHelper(file.children, fileId)) {
-				found = true;
-				return true;
-			}
-
-			return false;
-		});
-
-		return found;
-	};
-
-	const handleDelete = (fileId: number) => {
-		const updatedFiles = [...files];
-		deleteHelper(updatedFiles, fileId);
-		setFiles(updatedFiles);
+		setFiles(removeNode([...files]));
 	};
 
 	const renderFolder = (file: File) => {
@@ -223,7 +178,7 @@ const FileExplorer = () => {
 				<button
 					className="my-2 w-full cursor-pointer bg-amber-600 px-2 text-black rounded-lg"
 					onClick={() => {
-						handleAddition(files);
+						handleAddition();
 						setIsOpen(false);
 					}}>
 					Add
