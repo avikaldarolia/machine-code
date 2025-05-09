@@ -4,17 +4,11 @@ import React, { useState } from "react";
 type Checkbox = {
 	id: number;
 	label: string;
-	checked: boolean;
+	checked?: boolean;
 	children?: Checkbox[];
 };
 
-type ogCheck = {
-	id: number;
-	label: string;
-	children?: ogCheck[];
-};
-
-const CheckboxesData: ogCheck[] = [
+const CheckboxesData: Checkbox[] = [
 	{
 		id: 1,
 		label: "Fruits",
@@ -41,7 +35,7 @@ const CheckboxesData: ogCheck[] = [
 	},
 ];
 
-const buildTree = (nodes: ogCheck[]): Checkbox[] => {
+const buildTree = (nodes: Checkbox[]): Checkbox[] => {
 	return nodes.map((node) => ({
 		id: node.id,
 		label: node.label,
@@ -50,9 +44,13 @@ const buildTree = (nodes: ogCheck[]): Checkbox[] => {
 	}));
 };
 
-const NestedCheckbox = () => {
-	const [checkboxes, setCheckboxes] = useState<Checkbox[]>(buildTree(CheckboxesData));
-
+const Checkboxes = ({
+	checkboxes,
+	updateCheckboxes,
+}: {
+	checkboxes: Checkbox[];
+	updateCheckboxes: (checkboxes: Checkbox[]) => void;
+}) => {
 	const updateCheckboxTree = (nodes: Checkbox[], targetId: number, isChecked: boolean): Checkbox[] => {
 		return nodes.map((node) => {
 			const updatedNode = { ...node };
@@ -85,9 +83,8 @@ const NestedCheckbox = () => {
 
 	const handleCheckboxChange = (id: number, isChecked: boolean) => {
 		const updatedTree = updateCheckboxTree(checkboxes, id, isChecked);
-		setCheckboxes(updatedTree);
+		updateCheckboxes(updatedTree);
 	};
-
 	const renderCheckboxes = (nodes: Checkbox[]) => {
 		return nodes?.map((node: Checkbox) => (
 			<div key={node.id} className="w-full ml-3">
@@ -106,10 +103,16 @@ const NestedCheckbox = () => {
 		));
 	};
 
+	return renderCheckboxes(checkboxes);
+};
+
+const NestedCheckbox = () => {
+	const [checkboxes, setCheckboxes] = useState<Checkbox[]>(buildTree(CheckboxesData));
+
 	return (
 		<div className="p-6 w-1/3 mx-auto flex flex-col justify-center items-center">
 			<h1 className="text-4xl py-10">Nested Checkbox</h1>
-			{renderCheckboxes(checkboxes)}
+			<Checkboxes checkboxes={checkboxes} updateCheckboxes={setCheckboxes} />
 		</div>
 	);
 };
