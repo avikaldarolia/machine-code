@@ -4,6 +4,7 @@ const components = [
 	{ name: "Autocomplete", path: "/problems/autocomplete" },
 	{ name: "File Explorer", path: "/problems/file-explorer" },
 	{ name: "Nested Checkbox", path: "/problems/nested-checkbox" },
+	{ name: "Pagination", path: "/problems/pagination" },
 	// Add more rounds here
 ];
 
