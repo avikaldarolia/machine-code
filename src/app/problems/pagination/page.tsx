@@ -13,7 +13,7 @@ type Product = {
 };
 
 const Pagination = () => {
-	const [products, setProducts] = useState<Product[] | undefined>(undefined);
+	const [products, setProducts] = useState<Product[] | null>(null);
 	const pages = Array.from({ length: 20 }, (_, i) => i + 1);
 	const [activePage, setActivePage] = useState(1);
 
@@ -27,8 +27,8 @@ const Pagination = () => {
 		fetchData();
 	}, []);
 
-	const end = LIMIT * activePage - 1;
-	const start = end - LIMIT + 1;
+	const start = (activePage - 1) * LIMIT;
+	const end = start + LIMIT;
 
 	const currentProducts = products?.slice(start, end);
 
