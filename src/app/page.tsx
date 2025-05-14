@@ -5,6 +5,7 @@ const components = [
 	{ name: "File Explorer", path: "/problems/file-explorer" },
 	{ name: "Nested Checkbox", path: "/problems/nested-checkbox" },
 	{ name: "Pagination", path: "/problems/pagination" },
+	{ name: "Match Pair Game", path: "/problems/match-pair" },
 	// Add more rounds here
 ];
 
@@ -12,7 +13,7 @@ export default function Dashboard() {
 	return (
 		<main className="p-8">
 			<h1 className="text-3xl text-center font-bold mb-6 text-white">Machine Round Components</h1>
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-black">
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-black w-4/5 mx-auto">
 				{components.map((comp) => (
 					<Link
 						key={comp.name}
